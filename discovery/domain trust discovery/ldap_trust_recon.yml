@@ -1,0 +1,27 @@
+title: LDAP Reconnaissance / Domain Trust Enumeration
+id: a88c694d-e6d8-4ccc-90da-488401f255f2
+status: experimental
+description: Detects possible Active Directory domain trust enumeration via LDAP
+author: Adeem Mawani
+date: 2021/06/23
+logsource:
+    category: ldap_query
+    product: windows
+    definition: 'Requires Microsoft-Windows-LDAP-Client/Debug ETW logging'
+detection:
+    generic_search:
+        EventID: 30
+        SearchFilter|contains:
+            - '(objectCategory=nTDSDSA)'
+            - '(objectCategory=domain)'
+            - '(objectClass=trustedDomain)'
+    narrow_down_filter:
+        EventID: 30
+        SearchFilter|contains:
+            - '(domainSid=*)'
+            - '(objectSid=*)'
+    condition: (generic_search and not narrow_down_filter)
+level: medium
+tags:
+    - attack.discovery
+    - attack.t1482

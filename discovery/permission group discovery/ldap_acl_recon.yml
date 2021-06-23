@@ -1,0 +1,25 @@
+title: Enumeration of Access Control List Permissions
+id: 8e70d388-9f93-4798-a567-8fa4fad1de46
+status: experimental
+description: Detects enumeration of DACL permissions on the AdminSDHolder or Domain Root objects
+author: Adeem Mawani
+date: 2021/06/28
+references:
+    - https://techcommunity.microsoft.com/t5/security-compliance-and-identity/active-directory-access-control-list-8211-attacks-and-defense/ba-p/250315
+    - http://www.harmj0y.net/blog/redteaming/abusing-active-directory-permissions-with-powerview/
+logsource:
+    category: ldap_query
+    product: windows
+    description: 'Requires Microsoft-Windows-LDAP-Client/Debug ETW logging'
+detection:
+    filter:
+        EventID: 30
+        DistinguishedName:
+            - 'DC=*,DC=*'
+            - '*CN=AdminSDHolder*'
+        AttributeList|contains: 'nTSecurityDescriptor'
+    condition: filter
+level: medium
+tags:
+    - attack.discovery
+    - attack.t1069.002

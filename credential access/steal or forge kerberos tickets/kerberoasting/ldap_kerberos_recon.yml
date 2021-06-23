@@ -1,0 +1,25 @@
+title: LDAP Reconnaissance / Domain Kerberos Enumeration
+id: af99c841-c8fb-4666-8d30-9d1246f2e64e
+status: experimental
+description: Detects possible Active Directory Kerberos enumeration via LDAP
+author: Adeem Mawani
+date: 2021/06/23
+logsource:
+    category: ldap_query
+    product: windows
+    definition: 'Requires Microsoft-Windows-LDAP-Client/Debug ETW logging'
+detection:
+    suspicious_flag:
+        EventID: 30
+        SearchFilter|contains:
+            - '(userAccountControl:1.2.840.113556.1.4.803:=4194304)'
+            - '(userAccountControl:1.2.840.113556.1.4.803:=2097152)'
+            - '!(userAccountControl:1.2.840.113556.1.4.803:=1048574)'
+            - '(userAccountControl:1.2.840.113556.1.4.803:=524288)'
+            - 'msDS-AllowedToActOnBehalfOfOtherIdentity'
+            - 'msDS-AllowedToDelegateTo'
+    condition: (suspicious_flag)
+level: medium
+tags:
+    - attack.credential_access
+    - attack.t1558.003

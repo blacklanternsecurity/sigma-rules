@@ -1,0 +1,36 @@
+title: LDAP Reconnaissance / Account Enumeration
+id: a388e629-eab0-4153-acb4-df51bc5299fa
+status: experimental
+description: Detects possible Active Directory account enumeration via LDAP
+author: Adeem Mawani
+date: 2021/06/23
+logsource:
+    category: ldap_query
+    product: windows
+    definition: 'Requires Microsoft-Windows-LDAP-Client/Debug ETW logging'
+detection:
+    generic_search:
+        EventID: 30
+        SearchFilter|contains:
+            - '(sAMAccountType=805306368)'
+            - '(objectCategory=person)'
+            - '(objectCategory=user)'
+            - '(objectClass=user)'
+    suspicious_flag:
+        EventID: 30
+        SearchFilter|contains:
+            - '(userAccountControl:1.2.840.113556.1.4.803:=65536)'
+            - '(userAccountControl:1.2.840.113556.1.4.803:=544)'
+            - '!(UserAccountControl:1.2.840.113556.1.4.803:=2)'
+            - '(accountExpires=9223372036854775807)'
+            - '(accountExpires=0)'
+    narrow_down_filter:
+        EventID: 30
+        SearchFilter|contains:
+            - '(domainSid=*)'
+            - '(objectSid=*)'
+    condition: (generic_search and not narrow_down_filter) or (suspicious_flag)
+level: medium
+tags:
+    - attack.discovery
+    - attack.t1087.002

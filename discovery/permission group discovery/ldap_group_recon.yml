@@ -1,0 +1,42 @@
+title: LDAP Reconnaissance / Group Enumeration
+id: 1835849e-7fa3-4733-9979-c6c1fd604b42
+status: experimental
+description: Detects possible Active Directory group enumeration via LDAP
+author: Adeem Mawani
+date: 2021/06/23
+logsource:
+    category: ldap_query
+    product: windows
+    definition: 'Requires Microsoft-Windows-LDAP-Client/Debug ETW logging'
+detection:
+    generic_search:
+        EventID: 30
+        SearchFilter|contains:
+            - '(groupType:1.2.840.113556.1.4.803:=2147483648)'
+            - '(groupType:1.2.840.113556.1.4.803:=2147483656)'
+            - '(groupType:1.2.840.113556.1.4.803:=2147483652)'
+            - '(groupType:1.2.840.113556.1.4.803:=2147483650)'
+            - '(sAMAccountType=536870913)'
+            - '(sAMAccountType=536870912)'
+            - '(sAMAccountType=268435457)'
+            - '(sAMAccountType=268435456)'
+            - '(objectCategory=groupPolicyContainer)'
+            - '(objectCategory=organizationalUnit)'
+            - '(objectCategory=group)'
+            - '(objectClass=group)'
+            - '(primaryGroupID=512)'
+            - 'Domain Admins'
+    suspicious_flag:
+        EventID: 30
+        SearchFilter|contains:
+            - '(adminCount=1)'
+    narrow_down_filter:
+        EventID: 30
+        SearchFilter|contains:
+            - '(domainSid=*)'
+            - '(objectSid=*)'
+    condition: (generic_search and not narrow_down_filter) or (suspicious_flag)
+level: medium
+tags:
+    - attack.discovery
+    - attack.t1069.002

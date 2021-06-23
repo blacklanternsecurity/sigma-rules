@@ -1,0 +1,38 @@
+title: LDAP Reconnaissance / System Enumeration
+id: 766a6c76-c4fc-49ec-b0a3-48032de35786
+status: experimental
+description: Detects possible Active Directory system enumeration via LDAP
+author: Adeem Mawani
+date: 2021/06/23
+logsource:
+    category: ldap_query
+    product: windows
+    definition: 'Requires Microsoft-Windows-LDAP-Client/Debug ETW logging'
+detection:
+    generic_search:
+        EventID: 30
+        SearchFilter|contains:
+            - '(sAMAccountType=805306369)'
+            - '(objectCategory=Computer)'
+            - '(objectCategory=nTDSDSA)'
+            - '(objectCategory=server)'
+            - '(objectClass=computer)'
+            - '(objectClass=server)'
+            - '(primaryGroupID=521)'
+            - '(primaryGroupID=516)'
+            - '(primaryGroupID=515)'
+    suspicious_flag:
+        EventID: 30
+        SearchFilter|contains:
+            - '(userAccountControl:1.2.840.113556.1.4.803:=8192)'
+            - 'ms-MCS-AdmPwd'
+    narrow_down_filter:
+        EventID: 30
+        SearchFilter|contains:
+            - '(domainSid=*)'
+            - '(objectSid=*)'
+    condition: (generic_search and not narrow_down_filter) or (suspicious_flag)
+level: medium
+tags:
+    - attack.discovery
+    - attack.t1018
