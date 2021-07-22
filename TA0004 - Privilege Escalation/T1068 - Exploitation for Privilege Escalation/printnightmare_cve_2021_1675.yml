@@ -1,0 +1,44 @@
+title: PrintNightmare / CVE-2021-1675
+id: 8952ded9-0e02-4e8a-a7f7-df9cf9c16257
+status: experimental
+description: Detects potential exploitation of CVE-2021-1675
+author: Adeem Mawani
+date: 2021/07/01
+logsource:
+    category: multiple
+    product: windows
+    definition: 'Microsoft-Windows-PrintService/Operational, Microsoft-Windows-PrintService/Admin'
+detection:
+    admin_load_plugin_failed:
+        EventID: 808
+    op_driver_added:
+        EventID: 316
+    scm_service_crash:
+        EventID: 7031
+        Message|contains: 'Print Spooler'
+    sysmon_spool_crash:
+        EventID: 1
+        ParentImage: 'C:\Windows\System32\spoolsv.exe'
+        Image:
+            - 'C:\Windows\System32\werfault.exe'
+            - 'C:\Windows\System32\wermgr.exe'
+    sysmon_image_load:
+        EventID: 7
+        Image: 'C:\Windows\System32\spoolsv.exe'
+        ImageLoaded|contains: 'spool\drivers'
+    legit_dll:
+        - Signed: 'true'
+        - Signature|contains: 'Microsoft'
+        - SignatureStatus: 'Valid'
+    sysmon_file_create:
+        EventID: 11
+        Image: 'C:\Windows\System32\spoolsv.exe'
+        TargetFilename|contains:
+            - 'new'
+            - 'old'
+            - '\3\'
+    condition: admin_load_plugin_failed or op_driver_added or scm_service_crash or sysmon_spool_crash or (sysmon_image_load and not legit_dll) or sysmon_file_create
+level: high
+tags:
+    - attack.privilege_escalation
+    - attack.t1068

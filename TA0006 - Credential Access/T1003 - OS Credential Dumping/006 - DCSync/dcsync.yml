@@ -1,0 +1,33 @@
+title: DCSync
+id: 8d18db29-8364-467e-8d0c-9a9d1c314831
+status: experimental
+description: Detects malicious domain replication
+author: Adeem Mawani
+date: 2021/06/30
+logsource:
+    category: security
+    product: windows
+detection:
+    selection:
+        EventID: 4662
+        AccessMask: '0x100'
+        Properties|contains:
+            - 'Replicating Directory Changes All'
+            - '{1131f6aa-9c07-11d1-f79f-00c04fc2dcd2}'
+            - '{1131f6ad-9c07-11d1-f79f-00c04fc2dcd2}'
+            - '{9923a32a-3607-11d2-b9be-0000f87a36b2}'
+            - '{89e95b76-444d-4c62-991a-0facbeda640c}' #
+    filter1:
+        SubjectUserName|startswith:
+          - 'NT AUTHORITY'
+          - 'MSOL_'
+    filter2:
+        SubjectUserName|endswith: '$'
+    filter3:
+        - SubjectUserSid: 'NT AUTHORITY\'
+        - SubjectDomainName: 'Window Manager'
+    condition: selection and not (filter1 or filter2 or filter3)
+level: high
+tags:
+    - attack.credential_access
+    - attack.t1003.006
