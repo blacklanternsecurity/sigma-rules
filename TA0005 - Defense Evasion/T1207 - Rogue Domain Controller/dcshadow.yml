@@ -1,0 +1,34 @@
+title: DCShadow
+id: 1ab121a3-9adc-4d72-b6e5-6b3fb23ca10b
+status: experimental
+description: Detects creation of a rogue domain controller
+author: Adeem Mawani
+date: 2021/06/29
+logsource:
+    category: security
+    product: windows
+detection:
+    selection:
+        EventID: 4742
+        ServicePrincipalNames|contains:
+            - 'E3514235–4B06–11D1-AB04–00C04FC2DCD2'
+            - 'GC/*/*'
+    modified:
+        EventID: 5136
+        LDAPDisplayName: servicePrincipalName
+        Value|contains:
+            - 'E3514235–4B06–11D1-AB04–00C04FC2DCD2'
+            - 'GC/*/*'
+    created:
+        EventID: 5137
+    deleted:
+        EventID:
+          - 4929
+          - 5141
+    condition: selection or modified or created or deleted
+falsepositives:
+    - Legitimate Domain Controllers
+level: high
+tags:
+    - attack.defense_evasion
+    - attack.t1207

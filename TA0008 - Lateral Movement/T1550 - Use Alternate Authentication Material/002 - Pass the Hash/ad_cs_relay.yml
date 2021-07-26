@@ -1,0 +1,25 @@
+title: AD CS NTLM Relay
+id: c2ae96d0-e668-494c-9390-35400172e962
+status: experimental
+description: Detects Kerberos authentication via client certificate (NTLM relay to Active Directory Certificate Services HTTP enrollment endpoints)
+author: Adeem Mawani
+date: 2021/06/29
+references:
+    - 'https://posts.specterops.io/certified-pre-owned-d95910965cd2'
+    - 'https://twitter.com/Antonlovesdnb/status/1408804802604187655'
+logsource:
+    category: security
+    product: windows
+detection:
+    selection:
+        EventCode: 4768
+        TicketEncryptionType: '0x17' # RC4
+        PreAuthType: 16
+        CertIssuerName: *
+    condition: selection
+falsepositives:
+    - Legitimate usage of client authentication certificates / smart cards
+level: medium
+tags:
+    - attack.lateral_movement
+    - attack.t1550.002
